@@ -5,6 +5,7 @@ import { remoteFunction } from "./middleware/remote.js";
 const remote_functions = {};
 
 remote_functions.greetings = function (req, body) {
+    console.log(body);
     return { message: `Hello from server "${body.age} ${body.name}" url "${req.url}"`, date: new Date() };
 }
 

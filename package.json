@@ -6,10 +6,7 @@
     "scripts": {
         "dev": "node index.js"
     },
-    "author": "",
-    "license": "ISC",
-    "description": "",
-    "dependencies": {
-        "busboy": "^1.6.0"
-    }
+    "author": "John Iceberg Velez",
+    "license": "MIT",
+    "description": ""
 }
