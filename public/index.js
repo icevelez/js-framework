@@ -1,4 +1,8 @@
-import { Remote } from "./remote.js";
+import { connectRemote } from "./remote.js";
+
+/** @import {remote_functions} from '../remote_api.js' */
+/** @type {typeof remote_functions} */
+const Remote = connectRemote("/api/remote");
 
 const headerEl = document.getElementById("h1El");
 const data = await Remote.greetings({ age: 25, name: "ice" }, new File(['sefsfse'], 'hello_world.txt'));
