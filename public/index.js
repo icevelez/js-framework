@@ -3,6 +3,7 @@ import { Remote } from "./remote.js";
 const headerEl = document.getElementById("h1El");
 const data = await Remote.greetings({ age: 25, name: "ice" }, new File(['sefsfse'], 'hello_world.txt'));
 
+console.log("greetings:", data);
 console.log("server add number:", await Remote.add_numbers(69, 69));
 
 headerEl.textContent = data.message;
