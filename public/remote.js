@@ -18,7 +18,8 @@ async function remoteFetch(fn_name, args) {
     return data;
 }
 
-/** @type {{ [key:string] : (body:any) => Promise<any> }} */
+/** @import {remote_functions} from '../remote_api.js' */
+/** @type {typeof remote_functions} */
 export const Remote = new Proxy({}, {
     get(_, fn_name) {
         return (...args) => remoteFetch(fn_name, args)
