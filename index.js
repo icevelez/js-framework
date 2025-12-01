@@ -10,6 +10,10 @@ const remote_functions = remoteInstance({
     console_log: (body) => {
         console.log(body);
         return null;
+    },
+    add_numbers: (a, b) => {
+        console.log(a, b, a + b);
+        return a + b;
     }
 });
 

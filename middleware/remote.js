@@ -45,9 +45,10 @@ export function remoteFunction(remote_fns) {
             const fields = await parseMultipart(req, boundary);
             let response = func(...fields);
             if (response instanceof Promise) response = await response;
-            res.setHeader('Type', typeof response === "object" ? "json" : "text")
+            res.setHeader('Parse-Type', response && typeof response === "object" ? "json" : "text");
+            res.setHeader('Type', response ? typeof response : "text");
             res.setHeader('Content-type', typeof response === "object" ? "application/json" : "plain/text");
-            res.end(typeof response === "object" ? JSON.stringify(response) : response);
+            res.end(response && Object.getPrototypeOf(response) === Object.prototype ? JSON.stringify(response) : typeof response === "object" ? response : response?.toString());
         } catch (error) {
             res.statusCode = 500;
             res.end(error.toString());
@@ -109,6 +110,11 @@ export function parseMultipart(stream, boundary) {
                 fields[current.name] = current.filename === "json" ? JSON.parse(data.toString("utf8")) : current.filename === "blob" ? new Blob([data]) : new File([data], current.filename);
             } else {
                 fields[current.name] = data.toString("utf8");
+
+                const num = parseInt(fields[current.name]);
+                if (!isNaN(num)) fields[current.name] = num;
+
+                fields[current.name] = fields[current.name] === "undefined" ? undefined : fields[current.name] === "null" ? null : fields[current.name] === "true" ? true : fields[current.name] === "false" ? false : fields[current.name];
             }
         }
 

@@ -12,7 +12,10 @@ async function remoteFetch(fn_name, args) {
         headers: { 'X-Func-Name': fn_name },
         body: formData,
     })
-    return response[response.headers.get("type") || "text"]();
+    const data = await response[response.headers.get("parse-type") || "text"]();
+    if (response.headers.get("type") === "number") return data - 0;
+    if (response.headers.get("type") === "boolean") return Boolean(data);
+    return data;
 }
 
 /** @type {{ [key:string] : (body:any) => Promise<any> }} */
