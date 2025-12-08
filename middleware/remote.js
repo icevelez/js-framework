@@ -33,6 +33,13 @@ export function remoteFunction(remote_fns) {
             return;
         }
 
+        const func_param_data_types = JSON.parse(req.headers['x-func-param-datatypes']);
+        if (!Array.isArray(func_param_data_types)) {
+            res.writeHead(400);
+            res.end(`Function parameter data types invalid`);
+            return;
+        }
+
         const func_name = req.headers['x-func-name'];
         const func = func_name ? remote_fns[func_name] : null;
         if (!func_name || !func) {
@@ -42,7 +49,7 @@ export function remoteFunction(remote_fns) {
         }
 
         try {
-            const fields = await parseMultipart(req, boundary);
+            const fields = await parseMultipart(req, boundary, func_param_data_types);
             let response = func(...fields);
             if (response instanceof Promise) response = await response;
             res.setHeader('Parse-Type', response && typeof response === "object" ? "json" : "text");
@@ -61,8 +68,9 @@ export function remoteFunction(remote_fns) {
  * Streaming multipart parser
  * @param {Readable} stream
  * @param {string} boundary
+ * @param {string[]} func_param_data_types
  */
-export function parseMultipart(stream, boundary) {
+export function parseMultipart(stream, boundary, func_param_data_types) {
     return new Promise((resolve, reject) => {
         const dashBoundary = "--" + boundary;
         const boundaryBuffer = Buffer.from(dashBoundary);
@@ -105,17 +113,16 @@ export function parseMultipart(stream, boundary) {
             if (!current.name) return;
 
             const data = Buffer.concat(current.data);
+            const type = func_param_data_types[fields.length];
+            if (!type) throw new Error("Missing type");
 
             if (current.filename) {
                 fields[current.name] = current.filename === "json" ? JSON.parse(data.toString("utf8")) : current.filename === "blob" ? new Blob([data]) : new File([data], current.filename);
-            } else {
-                fields[current.name] = data.toString("utf8");
-
-                const num = parseInt(fields[current.name]);
-                if (!isNaN(num)) fields[current.name] = num;
-
-                fields[current.name] = fields[current.name] === "undefined" ? undefined : fields[current.name] === "null" ? null : fields[current.name] === "true" ? true : fields[current.name] === "false" ? false : fields[current.name];
+                return;
             }
+
+            fields[current.name] = data.toString("utf8");
+            fields[current.name] = type === "number" ? (fields[current.name] - 0) : type === "boolean" ? Boolean(fields[current.name]) : fields[current.name] === "undefined" ? undefined : fields[current.name] === "null" ? null : fields[current.name];
         }
 
         stream.on("data", chunk => {

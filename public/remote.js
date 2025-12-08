@@ -4,11 +4,14 @@
  */
 async function remoteFetch(fn_name, args, remote_endpoint) {
     const formData = new FormData();
-    for (let i = 0; i < args.length; i++) formData.append(i, Object.getPrototypeOf(args[i]) === Object.prototype ? new File([JSON.stringify(args[i])], 'json') : args[i]);
+    for (let i = 0; i < args.length; i++) formData.append(i, args[i] && Object.getPrototypeOf(args[i]) === Object.prototype ? new File([JSON.stringify(args[i])], 'json') : args[i]);
 
     const response = await fetch(remote_endpoint, {
         method: 'POST',
-        headers: { 'X-Func-Name': fn_name },
+        headers: {
+            'x-func-name': fn_name,
+            'x-func-param-datatypes': JSON.stringify(args.map((arg) => arg == null ? "null" : arg === undefined ? "undefined" : typeof arg)),
+        },
         body: formData,
     })
 
