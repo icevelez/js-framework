@@ -44,7 +44,7 @@ async function remoteFetch(fn_name, headers, args, remote_endpoint) {
     const contentType = response.headers.get("content-type");
     const dataType = response.headers.get("data-type");
 
-    if (contentType.startsWith("multipart/form-data")) {
+    if (contentType?.startsWith("multipart/form-data")) {
         const formData = await response.formData();
         return decode(formData.get("0"), formData);
     }

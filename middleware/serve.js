@@ -1,4 +1,4 @@
-import http from 'http'
+/** @import { Request, Response } from '../lib/http' */
 
 import fs from 'fs/promises';
 import path from 'path';
@@ -12,8 +12,8 @@ const __dirname = path.join(path.dirname(__filename), "/../");
  */
 export function serve(dir) {
     /**
-     * @param {http.IncomingMessage} req
-     * @param {http.ServerResponse<http.IncomingMessage>} res
+     * @param {Request} req
+     * @param {Response} res
      */
     return async (req, res) => {
         if (req.method !== 'GET') return;
@@ -41,9 +41,7 @@ export function serve(dir) {
                 '.txt': 'text/plain'
             };
 
-            res.writeHead(200, {
-                'Content-Type': contentTypes[ext] ?? 'application/octet-stream'
-            });
+            res.status(200).setHeader('Content-Type', contentTypes[ext] ?? 'application/octet-stream');
             res.end(file);
         } catch (error) {
             // ignore non-existent files

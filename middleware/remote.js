@@ -1,4 +1,4 @@
-/** @import http from 'http' */
+/** @import { Request, Response } from '../lib/http' */
 
 import { randomUUID } from 'crypto';
 
@@ -10,41 +10,24 @@ const byte_to_megabyte = (byte) => byte * 1024 * 1024;
  */
 export function remoteFunction(remote_fns, config) {
     /**
-     * @param {http.IncomingMessage} req
-     * @param {http.ServerResponse<http.IncomingMessage>} res
+     * @param {Request} req
+     * @param {Response} res
      */
     return async (req, res) => {
         if (req.method !== 'POST') return;
 
         const contentType = req.headers["content-type"] || "";
-
-        if (!contentType.startsWith("multipart/form-data")) {
-            res.writeHead(400);
-            res.end("Content-type must be \"multipart/form-data\"");
-            return;
-        }
+        if (!contentType.startsWith("multipart/form-data")) return res.status(400).end("Content-type must be \"multipart/form-data\"");
 
         const boundary = contentType.split("boundary=")[1];
-        if (!boundary) {
-            res.writeHead(400);
-            res.end("Missing boundary");
-            return;
-        }
+        if (!boundary) return res.status(400).end("Missing boundary");
 
         const func_param_data_types = JSON.parse(req.headers['x-func-param-datatypes']);
-        if (!Array.isArray(func_param_data_types)) {
-            res.writeHead(400);
-            res.end(`Function parameter data types invalid`);
-            return;
-        }
+        if (!Array.isArray(func_param_data_types)) return res.status(400).end(`Function parameter data types invalid`);
 
         const func_name = req.headers['x-func-name'];
         const func = func_name ? remote_fns[func_name] : null;
-        if (!func_name || !func) {
-            res.writeHead(404);
-            res.end(`Function "${func_name}" not found`);
-            return;
-        }
+        if (!func_name || !func) return res.status(404).end(`Function "${func_name}" not found`);
 
         try {
             const fields = await parseMultipart(req, boundary, func_param_data_types, byte_to_megabyte(config?.max_request_size_in_mb || 0), byte_to_megabyte(config?.max_field_size_in_mb || 0));
@@ -53,10 +36,6 @@ export function remoteFunction(remote_fns, config) {
 
             const formData = new FormData();
             const encoded_response = response && typeof response === "object" ? encode(response, formData) : response;
-            const headers = new Headers({
-                'Data-Type': response ? typeof response : "text",
-                'Content-type': response instanceof File || response instanceof Blob ? "application/octet-stream" : typeof response === "object" ? "application/json" : "plain/text"
-            })
 
             if (encoded_blobs_idx > 0) {
                 encoded_blobs_idx = 0;
@@ -64,11 +43,11 @@ export function remoteFunction(remote_fns, config) {
                 return writeFormDataResponse(res, formData);
             }
 
-            res.setHeaders(headers);
+            res.setHeader('Data-Type', response ? typeof response : "text");
+            res.setHeader('Content-type', response instanceof File || response instanceof Blob ? "application/octet-stream" : typeof response === "object" ? "application/json" : "plain/text")
             res.end(encoded_response);
         } catch (error) {
-            res.statusCode = 500;
-            res.end(error.toString());
+            res.status(500).end(error.toString());
             return;
         }
     }
@@ -76,7 +55,7 @@ export function remoteFunction(remote_fns, config) {
 
 /**
  * Streaming multipart parser
- * @param {Readable} stream
+ * @param {Request} stream
  * @param {string} boundary
  * @param {string[]} func_param_data_types
  * @param {number} max_request_size
@@ -86,7 +65,6 @@ export function parseMultipart(stream, boundary, func_param_data_types, max_requ
     return new Promise((resolve, reject) => {
         const dashBoundary = Buffer.from("--" + boundary);
         const dashBoundaryEnd = Buffer.from("--" + boundary + "--");
-        const crlf = Buffer.from("\r\n");
         const headerEndSeq = Buffer.from("\r\n\r\n");
         const fields = [];
 
