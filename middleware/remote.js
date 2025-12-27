@@ -209,7 +209,7 @@ const encode = (obj, formData) => JSON.stringify(obj, (k, v) => {
 
 /**
  * Writes multipart/form-data to a Node HTTP response
- * @param {ServerResponse} res
+ * @param {Response} res
  * @param {FormData} formData  (FormData or Map or Object entries)
  */
 export async function writeFormDataResponse(res, formData) {

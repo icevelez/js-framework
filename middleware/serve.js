@@ -21,11 +21,7 @@ export function serve(dir) {
         const url = req.url.split("?")[0];
         let filePath = path.join(__dirname, "/", dir, (url === '/') ? 'index.html' : url);
 
-        if (!filePath.startsWith(__dirname)) {
-            res.writeHead(403);
-            res.end("Forbidden");
-            return;
-        }
+        if (!filePath.startsWith(__dirname)) return res.status(403).end("Forbidden");
 
         try {
             const file = await fs.readFile(filePath);
@@ -41,8 +37,7 @@ export function serve(dir) {
                 '.txt': 'text/plain'
             };
 
-            res.status(200).setHeader('Content-Type', contentTypes[ext] ?? 'application/octet-stream');
-            res.end(file);
+            res.status(200).setHeader('Content-Type', contentTypes[ext] ?? 'application/octet-stream').end(file);
         } catch (error) {
             // ignore non-existent files
             // console.error(error);
