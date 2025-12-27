@@ -31,7 +31,13 @@ export default class {
 
         console.log(data, args);
 
-        return { message: `Hello from server ${user_data}` };
+        return {
+            message: `Hello from server ${user_data}`,
+            map: new Map([[1, "this is an example"], [2, "another example xyz"]]),
+            file: new File(['hello'], 'hello_word.txt'),
+            test_data: new Date(),
+            set: new Set([1, 2, 2, 2, 2, 2, 3, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0]),
+        };
     }
 
     /**

@@ -1,21 +1,31 @@
-const serialize = (v) => v instanceof Map ? { __t: "Map", v: [...v] } : v instanceof Set ? { __t: "Set", v: [...v] } : v instanceof RegExp ? { __t: "RegExp", v: v.toString() } : v instanceof Date ? { __t: "Date", v: v.toISOString() } : v;
+/**
+ * @param {string} remote_endpoint
+ * @param {Record<string, string>} headers
+ */
+export const connectRemote = (remote_endpoint, headers = {}) => new Proxy(new Object(), {
+    get(_, fn_name) {
+        return (...args) => remoteFetch(fn_name, headers, args, remote_endpoint)
+    },
+});
+
+const deserialization_map = { "Date": (v) => new Date(v), "RegExp": (v) => new RegExp(v), "Set": (v) => new Set(v), "Map": (v) => new Map(v) };
+const deserialize = (v) => deserialization_map[v?.__t] ? deserialization_map[v.__t](v.v) : v;
+const decode = (json, form) => JSON.parse(json, (_, v) => (v?.__b >= 0) ? form.get(`blob-${v.__b}`) : deserialize(v));
 
 let encoded_blobs_idx = 0;
-const encode = (obj, formData) => JSON.stringify(obj, (k, v) => {
-    if (obj !== v && (v instanceof File || v instanceof Blob)) {
-        formData.append(`blob-${encoded_blobs_idx}`, v);
-        return { __b: encoded_blobs_idx++ };
-    }
-    return serialize(obj[k] || v);
+const serialize = (v) => v instanceof Map ? { __t: "Map", v: [...v] } : v instanceof Set ? { __t: "Set", v: [...v] } : v instanceof RegExp ? { __t: "RegExp", v: v.toString() } : v instanceof Date ? { __t: "Date", v: v.toISOString() } : v;
+const encode = (obj, formData) => (obj && obj instanceof Date) ? JSON.stringify(serialize(obj)) : JSON.stringify(obj, (k, v) => {
+    if (!(v instanceof File || v instanceof Blob)) return serialize(obj[k] || v);
+    formData.append(`blob-${encoded_blobs_idx}`, v);
+    return { __b: encoded_blobs_idx++ };
 });
 
 async function remoteFetch(fn_name, headers, args, remote_endpoint) {
     encoded_blobs_idx = 0;
     const formData = new FormData();
     for (let i = 0; i < args.length; i++) {
-        const arg = serialize(args[i]);
-        const is_jsonable = arg && Object.getPrototypeOf(arg) === Object.prototype || Array.isArray(arg);
-        formData.append(i, is_jsonable ? new File([encode(arg, formData)], '.json') : arg);
+        const data = args[i] && typeof args[i] === "object" ? encode(args[i], formData) : args[i];
+        formData.append(i, encoded_blobs_idx > 0 ? new File([data], '.json') : data);
     }
 
     const response = await fetch(remote_endpoint, {
@@ -31,20 +41,14 @@ async function remoteFetch(fn_name, headers, args, remote_endpoint) {
     if (response.status >= 400) throw new Error(await response.text());
     if (response.status < 200 || response.status > 299 || response.status === 204) return;
 
-    const data = await response[response.headers.get('content-type') === 'application/json' ? 'json' : 'text']();
-    const response_type = response.headers.get("type");
+    const contentType = response.headers.get("content-type");
+    const dataType = response.headers.get("data-type");
 
-    return (response_type === "number") ? +data : (response_type === "boolean") ? Boolean(data) : data;
-}
+    if (contentType.startsWith("multipart/form-data")) {
+        const formData = await response.formData();
+        return decode(formData.get("0"), formData);
+    }
 
-/**
- * @param {string} remote_endpoint
- * @param {Record<string, string>} headers
- */
-export function connectRemote(remote_endpoint, headers = {}) {
-    return new Proxy({}, {
-        get(_, fn_name) {
-            return (...args) => remoteFetch(fn_name, headers, args, remote_endpoint)
-        },
-    });
+    const text = await response.text();
+    return (dataType === "object") ? decode(text) : (dataType === "number") ? +text : (dataType === "boolean") ? Boolean(text) : text;
 }

@@ -1,5 +1,7 @@
 /** @import http from 'http' */
 
+import { randomUUID } from 'crypto';
+
 const byte_to_megabyte = (byte) => byte * 1024 * 1024;
 
 /**
@@ -48,8 +50,22 @@ export function remoteFunction(remote_fns, config) {
             const fields = await parseMultipart(req, boundary, func_param_data_types, byte_to_megabyte(config?.max_request_size_in_mb || 0), byte_to_megabyte(config?.max_field_size_in_mb || 0));
             let response = func(...fields);
             if (response instanceof Promise) response = await response;
-            res.setHeaders(new Headers({ 'Type': response ? typeof response : "text", 'Content-type': typeof response === "object" ? "application/json" : "plain/text" }));
-            res.end(response && Object.getPrototypeOf(response) === Object.prototype ? JSON.stringify(response) : typeof response === "object" ? response : response?.toString());
+
+            const formData = new FormData();
+            const encoded_response = response && typeof response === "object" ? encode(response, formData) : response;
+            const headers = new Headers({
+                'Data-Type': response ? typeof response : "text",
+                'Content-type': response instanceof File || response instanceof Blob ? "application/octet-stream" : typeof response === "object" ? "application/json" : "plain/text"
+            })
+
+            if (encoded_blobs_idx > 0) {
+                encoded_blobs_idx = 0;
+                formData.append(0, encoded_response);
+                return writeFormDataResponse(res, formData);
+            }
+
+            res.setHeaders(headers);
+            res.end(encoded_response);
         } catch (error) {
             res.statusCode = 500;
             res.end(error.toString());
@@ -125,7 +141,7 @@ export function parseMultipart(stream, boundary, func_param_data_types, max_requ
             if (currentFilename) {
                 fields[currentName] = currentFilename === ".json" ? decode(v, fields) : currentFilename === "blob" ? new Blob([data]) : new File([data], currentFilename);
             } else {
-                fields[currentName] = type === "number" ? +v : type === "boolean" ? v === "true" : v === "undefined" ? undefined : v === "null" ? null : v;
+                fields[currentName] = type === "object" ? decode(v, fields) : type === "number" ? +v : type === "boolean" ? v === "true" : v === "undefined" ? undefined : v === "null" ? null : v;
             }
 
             currentName = null;
@@ -190,7 +206,76 @@ export function parseMultipart(stream, boundary, func_param_data_types, max_requ
 
 const deserialization_map = { "Date": (v) => new Date(v), "RegExp": (v) => new RegExp(v), "Set": (v) => new Set(v), "Map": (v) => new Map(v) };
 const deserialize = (v) => deserialization_map[v?.__t] ? deserialization_map[v.__t](v.v) : v;
-const decode = (json, fields) => JSON.parse(json, (_, v) => {
-    if (v?.__b >= 0) return fields[`blob-${v.__b}`];
-    return deserialize(v);
+/**
+ * @param {string} json
+ * @param {Record<string, any>} fields
+ */
+const decode = (json, fields) => JSON.parse(json, (_, v) => (v?.__b >= 0) ? fields[`blob-${v.__b}`] : deserialize(v));
+
+const serialize = (v) => v instanceof Map ? { __t: "Map", v: [...v] } : v instanceof Set ? { __t: "Set", v: [...v] } : v instanceof RegExp ? { __t: "RegExp", v: v.toString() } : v instanceof Date ? { __t: "Date", v: v.toISOString() } : v;
+
+let encoded_blobs_idx = 0;
+
+/**
+ *
+ * @param {any} obj
+ * @param {FormData} formData
+ */
+const encode = (obj, formData) => JSON.stringify(obj, (k, v) => {
+    if (v instanceof File || v instanceof Blob) {
+        formData.append(`blob-${encoded_blobs_idx}`, v);
+        return { __b: encoded_blobs_idx++ };
+    }
+    return serialize(obj[k] || v);
 });
+
+/**
+ * Writes multipart/form-data to a Node HTTP response
+ * @param {ServerResponse} res
+ * @param {FormData} formData  (FormData or Map or Object entries)
+ */
+export async function writeFormDataResponse(res, formData) {
+    const boundary = "----" + randomUUID();
+
+    res.setHeader(
+        "Content-Type",
+        "multipart/form-data; boundary=" + boundary
+    );
+
+    for (const [name, value] of formData) {
+        res.write(`--${boundary}\r\n`);
+
+        // File / Blob
+        if (value?.stream || value instanceof Blob || value instanceof Buffer) {
+            const filename = value.name || "blob";
+            const type = value.type || "application/octet-stream";
+
+            res.write(
+                `Content-Disposition: form-data; name="${name}"; filename="${filename}"\r\n` +
+                `Content-Type: ${type}\r\n\r\n`
+            );
+
+            const stream =
+                value.stream?.() ??
+                (value instanceof Buffer
+                    ? Readable.from(value)
+                    : Readable.from(await value.arrayBuffer()));
+
+            for await (const chunk of stream) {
+                res.write(chunk);
+            }
+
+            res.write("\r\n");
+        }
+        // Plain value
+        else {
+            res.write(
+                `Content-Disposition: form-data; name="${name}"\r\n\r\n` +
+                String(value) +
+                "\r\n"
+            );
+        }
+    }
+
+    res.end(`--${boundary}--`);
+}
