@@ -22,6 +22,9 @@ rpcMux.handle("/api/remote", authContextMiddle);
 rpcMux.handle("/api/remote", remoteFunction(remote_functions, { max_request_size_in_mb: 1 }));
 
 const mux = new HttpMux();
+mux.handleFunc("GET /i/:hello", (req, res) => {
+    res.end("HEX")
+})
 mux.handle("/", serve('public'));
 mux.handle("/", rpcMux.strip_prefix());
 mux.serveTLS("ssl/default.key", "ssl/default.cert", 3000);
