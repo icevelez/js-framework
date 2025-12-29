@@ -4,7 +4,7 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "dev": "bun --experimental --watch index.js"
+        "dev": "bun --watch index.js"
     },
     "author": "John Iceberg Velez",
     "license": "MIT",

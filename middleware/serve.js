@@ -16,13 +16,8 @@ export function serve(dir) {
         const filePath = path.join(__dirname, (req.path === '/') ? 'index.html' : req.path);
         if (!filePath.startsWith(__dirname)) return new Response("forbidden", { status: 403 });
 
-        try {
-            const file = Bun.file(filePath);
-            return new Response(file)
-        } catch (error) {
-            // ignore non-existent files
-            // console.error(error);
-            return;
-        }
+        const file = Bun.file(filePath);
+        if (!(await file.exists())) return;
+        return new Response(file);
     }
 }

@@ -22,4 +22,9 @@ rpcMux.handle("/api/remote", remoteFunction(remote_functions, { max_request_size
 const mux = new HttpMux();
 mux.handle("/", serve('public'));
 mux.handle("/", rpcMux.strip_prefix());
-mux.serveTLS("ssl/default.key", "ssl/default.cert", 3000);
+mux.serve({
+    hostname: "0.0.0.0",
+    port: 3000,
+    key: "ssl/default.key",
+    cert: "ssl/default.cert",
+});
