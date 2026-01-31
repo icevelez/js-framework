@@ -61,7 +61,7 @@ export default class {
         const expiry = new Date();
         expiry.setMonth(expiry.getMonth() + 1);
 
-        this.#set_response_headers({ 'Set-cookie': `session_remote_id=${session_uuid}; expires=${expiry.toUTCString()}` });
+        this.#set_response_headers({ 'Set-cookie': `session_id=${session_uuid}; expires=${expiry.toUTCString()}` });
 
         this.#in_memory_session.set(session_uuid, { user, expiry });
 
@@ -69,12 +69,11 @@ export default class {
     }
 
     sign_out = async () => {
-        const session_id = this.#get_request_context().cookies.get("session_remote_id");
+        const session_id = this.#get_request_context().cookies.get("session_id");
         if (!session_id) return false;
 
         this.#in_memory_session.delete(session_id);
 
-        this.#set_response_headers({ 'Set-cookie': `session_remote_id=;` });
         return true;
     }
 }

@@ -19,7 +19,7 @@ const max_request_size_in_mb = 1;
 const megabytes = 1024 * 1024;
 
 const [authContextMiddleware, getAuthContext] = createContext(async (request) => {
-    const session_id = request.cookies.get("session_remote_id");
+    const session_id = request.cookies.get("session_id");
     if (!session_id) return;
 
     const session = in_memory_session.get(session_id);
