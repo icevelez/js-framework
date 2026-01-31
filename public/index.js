@@ -8,7 +8,7 @@ const REMOTE = connectRemote("/remote/api/example");
 /** @type {RemoteAuth} */
 const REMOTE_AUTH = connectRemote("/remote/auth");
 
-// 'john','dev' for non admin example use
+// 'john', 'dev' for non admin example use
 console.log(await REMOTE_AUTH.sign_in('admin', 'admin'));
 console.log(await REMOTE.add_numbers(4, 5));
 console.log(await REMOTE_AUTH.sign_out());
