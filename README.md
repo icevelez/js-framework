@@ -4,6 +4,15 @@ Originally this project was focus on implementing a verson of SvelteKit's remote
 
 It just so happens there are also other libraries in this project like wrapping Node's HTTP module and adding middleware support to serve static content and logging (that piece of code had no name until now) to moving to Bun's HTTP module then adding template engine middleware like handlebar and changing it to nunchucks to prevent conflict with another project of mine called Core.js as it primarily uses handlebar to parse templates on the browser
 
+## How to Run 
+
+### Prerequisite
+
+You must have [Bun](https://bun.sh) installed
+
+1. Clone this repository
+2. Open terminal and run `bun run start`
+
 ## Bun.HTTP 
 
 A web framework wrapper to extend the capabilities of Bun.serve inspired from Go's HTTP standard library
