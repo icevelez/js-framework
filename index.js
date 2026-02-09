@@ -8,7 +8,7 @@ import { logger } from "./lib/bun/middleware/logger.js";
 import RemoteAuth from "./remote/auth.js";
 import RemoteExample from "./remote/example.js";
 import ServerSentEventHandler from "./remote/sse.js";
-import { handlebar } from "./lib/bun/middleware/handlebar.js";
+import { nunchucks } from "./lib/bun/middleware/nunchucks.js";
 
 const database = "FAKE";
 
@@ -42,7 +42,7 @@ rpcMux.handleFunc("GET /api/sse", sse_func);
 
 const mux = new HttpMux();
 mux.handle("/", logger());
-mux.handle("/", handlebar("public", { useGzip: true }));
+mux.handle("/", nunchucks("public", { useGzip: true }));
 mux.handle("/", serve("public", { useGzip: true }));
 mux.handle("/remote/", rpcMux.strip_prefix("/remote"));
 
