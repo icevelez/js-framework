@@ -1,5 +1,9 @@
 # A Fullstack JS Framework?
 
+Originally this project was focus on implementing a verson of SvelteKit's remote function using plain JS - that's it. 
+
+It just so happens there are also other libraries in this project like wrapping Node's HTTP module and adding middleware support to serve static content and logging (that piece of code had no name until now) to moving to Bun's HTTP module then adding template engine middleware like handlebar and changing it to nunchucks to prevent conflict with another project of mine called Core.js as it primarily uses handlebar to parse templates on the browser
+
 ## Bun.HTTP 
 
 A web framework wrapper to extend the capabilities of Bun.serve inspired from Go's HTTP standard library
