@@ -1,29 +1,65 @@
 +++
-title=Cost and Design Comparison of Inter-Office Networking Solutions
+title=Welcome Blog
+description=My first blog
+thumbnail_url=../assets/happy-dog.webp
+thumbnail_description=happy doggo
+author=Iceberg Velez
+year=2026
+date=Jan 4
 +++
-# Cost and Design Comparison of Inter-Office Networking Solutions
+![Happy Dog](../assets/happy-dog.webp)
 
-| Networking Approach                                                                   | Software / Hardware Cost                                                                                                                                                                                                                                                                                                                                                                                               | Deployment Complexity                                                                                                                                                                                                                | Network Topology                                                                                       | Architectural Consequence                                                                                                                                                                               |
-| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Site-to-Site VPN (Open-Source Firewall – OPNsense / pfSense)**                      | Requires firewall hardware at each participating site. Dedicated DIY firewall hardware may cost **₱30,000 – ₱100,000** depending on processing capability and network interfaces. However, costs may be **reduced or eliminated if existing computers or servers can be repurposed** to run the firewall software. The software itself is open source and does not require licensing fees.                             | Moderate. Requires configuration of VPN tunnels, routing rules, and firewall policies across all participating sites. Additional plugins may be required to enable advanced features such as dynamic routing or enhanced monitoring. | **Hub-and-Spoke**. City Hall acts as the central hub while branch offices connect as spokes.           | Introduces a **single point of failure** at the central gateway. If the City Hall gateway becomes unavailable, communication between branch offices is disrupted because traffic must traverse the hub. |
-| **Hybrid Open-Source VPN (OPNsense Hub + OpenWRT Branch Clients)**                    | Lower hardware cost compared to full firewall deployment at every site. City Hall operates **OPNsense** on dedicated hardware, while branch offices may use routers running **OpenWRT** as VPN clients. In some cases, **existing routers may be reused**, significantly lowering deployment cost. However, **not all routers support OpenWRT**, which may require hardware replacement or upgrades for compatibility. | Moderate. Requires VPN configuration on the OPNsense gateway and compatible VPN client configuration on OpenWRT routers. Router processing capability must also be considered to maintain stable encrypted throughput.               | **Hub-and-Spoke** architecture where the OPNsense gateway at City Hall functions as the central hub.   | Still introduces a **single point of failure** at the hub gateway. If the central node fails, branch offices cannot communicate with each other.                                                        |
-| **Site-to-Site VPN (Proprietary Firewall Appliances – e.g., Sangfor / FortiGate)**    | Requires both **vendor-specific hardware and software licensing**. A procurement document indicated a purchase cost of approximately **₱398,000 including a 3-year security license per site**, though future license renewal costs are unknown.                                                                                                                                                                                | Lower configuration complexity due to integrated management interfaces and vendor support but introduces **vendor lock-in and recurring licensing requirements**.                                                                    | **Hub-and-Spoke** architecture similar to open-source VPN deployments.                                 | Central gateway becomes a **critical dependency**, creating a single point of failure if the hub loses connectivity.                                                                                    |
-| **Hybrid Proprietary and Open Source Solution (Sangfor IPSec Hub + OpenWRT Clients)** | Combines proprietary firewall hardware at the central site with open-source client devices at branch offices. Branch offices may connect using routers running OpenWRT configured as **IPSec VPN clients**, reducing hardware requirements at remote sites.                   | Moderate to high. While proprietary firewall interfaces simplify some configuration tasks, compatibility and configuration between vendor-specific IPSec implementations and OpenWRT clients must be carefully managed.              | **Hub-and-Spoke** architecture with the proprietary firewall appliance serving as the central VPN hub. | Retains the **centralized routing dependency** characteristic of hub-and-spoke architectures. Failure of the central appliance will disrupt connectivity between branch offices.                        |
-| **Managed MPLS / Enterprise WAN (Dedicated Leased Line)**                             | Requires **enterprise leased line subscription from telecommunications providers**, with estimated costs ranging from **₱40,000 – ₱65,000 per month** depending on bandwidth allocation and service level agreement.                                                                                                                                                                                                   | Low internal complexity because infrastructure is managed by the ISP, though provisioning may take several weeks or months.                                                                                                          | **Provider-Managed Private Network** connecting all sites through the ISP backbone.                    | Offers reliable connectivity with guaranteed bandwidth but introduces **significant recurring operational costs** that increase with additional sites.                                                  |
-| **Wireless Point-to-Point Radio Links (Tower Infrastructure)**                        | Requires physical infrastructure including radio towers and directional radio hardware. Estimated cost per site: **Monopole tower ₱172,000 – ₱242,000** and **Point-to-Point radio hardware approximately ₱80,000**.                                                                                                                                                                                                   | High deployment complexity due to tower construction, antenna alignment, and line-of-sight planning.                                                                                                                                 | Typically **Point-to-Point or Hub-and-Spoke wireless topology** depending on tower placement.          | Requires infrastructure investment and may be affected by terrain, environmental conditions, and signal interference.                                                                                   |
-| **Proposed Overlay Network (Headscale-Based Mesh VPN)**                               | Minimal infrastructure cost. The coordination server can run on existing infrastructure with a public static IP address. If unavailable, a **Virtual Private Server (approximately $4 per month)** may host the coordination server. Additional hardware may only be required when a dedicated subnet router is needed.                                                                                                | Low to moderate complexity. Nodes authenticate through the coordination server and automatically establish encrypted peer-to-peer tunnels.                                                                                           | **Peer-to-Peer Mesh Overlay Network** operating on top of existing internet infrastructure.            | Eliminates centralized routing dependency and **reduces single-point-of-failure risks**, allowing nodes to communicate directly across the overlay network.                                             |
+# Hello viewer
 
----
+This is my first blog. I don't know how blogs work or how to make so I'm just typing out what's on my mind
 
-# Network Topology Behavior Comparison for Inter-Office Connectivity
+I was inspired to make this when I saw [Emil Privér's](https://priver.dev/) website which had this simple yet elegant look. It is powered by Hugo, a Framework that compiles markdown files as HTML using Go but I'd like to go on a different route
 
-| Characteristic                        | Hub-and-Spoke Topology (Site-to-Site VPN)                                                                                                                      | Mesh Overlay Topology (Proposed System)                                                                                  |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Traffic Routing Model**             | All branch office traffic must pass through a central hub before reaching another branch office.                                                               | Nodes establish direct encrypted tunnels with other nodes when communication is required.                                |
-| **Central Infrastructure Dependency** | Requires a central gateway (typically City Hall) with a public static IP address to function as the VPN hub.                                                   | Uses a coordination server only for node discovery and authentication; actual traffic flows directly between nodes.      |
-| **Single Point of Failure**           | The hub becomes a critical dependency. If the central gateway fails or loses connectivity, all inter-office communication between branch offices is disrupted. | No single routing hub. If one node becomes unavailable, other nodes in the network remain connected.                     |
-| **Branch-to-Branch Communication**    | Branch offices cannot communicate directly; traffic must be routed through the hub.                                                                            | Branch offices can communicate directly through peer-to-peer encrypted tunnels.                                          |
-| **Scalability**                       | Adding more branch offices increases traffic load on the central hub and may require hardware upgrades.                                                        | Network scales more naturally because traffic is distributed across multiple nodes rather than a single central gateway. |
-| **Bandwidth Utilization**             | The central hub must handle the aggregated traffic of all branch offices, which can create bottlenecks.                                                        | Bandwidth usage is distributed since nodes communicate directly when possible.                                           |
-| **Operational Resilience**            | Failure or maintenance of the hub disrupts the entire network.                                                                                                 | Network remains operational even if individual nodes temporarily disconnect.                                             |
-| **Typical Use Cases**                 | Traditional enterprise VPN deployments and centralized firewall architectures.                                                                                 | Software-defined overlay networks such as those implemented using coordination servers and peer-to-peer tunnels.         |
+My set out goal was to create blog post client-side (browser) which means no build step therefore I can not use most SSG Frameworks and to achieve that my first idea was to convert a markdown (.md) file to HTML and inject it to the DOM which led me to search for JS markdown-to-html library like [Marked](https://github.com/markedjs/marked)
+
+So the process would be to use `fetch` to download `index.md`, parse it as a text then use `marked.min.js` to convert it to HTML then insert it to `id="content"` and repeat that for every blog site that will come next
+
+folder structure
+
+```
+├── index.html
+├── style.css
+├── marked.min.js
+├── marked.build.js
+└── blog
+    ├── index.html
+    └── welcome-blog
+        ├── index.html
+        └── index.md
+    └── upcoming-blog...
+        ├── index.html
+        └── index.md
+```
+
+marked.build.js
+```js
+fetch("index.md").then((response) => response.text()).then((data) => {
+    const contentElement = document.getElementById("content");
+    if (!contentElement) {
+        alert("content element not found")
+        return;
+    }
+
+    try {
+        if (!marked) {
+            alert("marked.js not found")
+            return;
+        }
+        contentElement.innerHTML = marked.parse(data)
+    } catch (error) {
+        alert("something went wrong converting markdown to html")
+        console.error(error);
+        return;
+    }
+}).catch((error) => {
+    alert("failed to retrieve content");
+    console.error(error);
+})
+```
+
+This way I don't have the hassle of a build process but that also means I have to do things more manually like adding in a new blog entry in `/blog/index.html` every time I create a new blog, manually adding in HTML metadata for search engine and social messaging platform like `Discord` could properly parse my blogpost; There is also the caveat that `marked.js` brings like no syntax highlight for code blocks by default but overall it's an okay compromise as a start, things will change but how they'll change, time will tell

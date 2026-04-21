@@ -11,12 +11,56 @@
           		}
            	}
         </style>
+        <meta charset="UTF-8">
+
+        <meta property="og:title" content="{% data.title %}">
+        <meta property="og:description" content="{% data.description %}">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="{% data.url %}">
+        <meta property="og:image" content="{% data.thumbnail_url %}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="{% data.thumbnail_description %}">
+
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" defer></script>
+
+        <!--<link rel="stylesheet" href="/style.css"/>-->
+        <!-- <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet"> -->
     </head>
     <body>
-        <h1>Hello Header</h1>
-        <div class="markdown-body">
-            {% data.content %}
-        </div>
-        <h1>Hello Footer</h1>
+        <header class="w-full flex justify-center px-4">
+            <nav class="h-[4rem] w-full max-w-[calc(900px-2rem)] flex justify-between">
+                <div class="p-0.5 h-full flex items-center text-xl font-bold">
+                    <a href="/" class="hover:text-fuchsia-700">{% data.author %}</a>
+                </div>
+                <ul class="p-0.5 h-full flex items-center gap-4">
+                    <li>
+                        <a href="/resume" class="hover:text-fuchsia-700">Resume</a>
+                    </li>
+                </ul>
+            </nav>
+        </header>
+        <main class="w-full flex justify-center px-4">
+            <div class="w-full max-w-[calc(900px-2rem)]">
+                <div class="py-2">
+                    <div class="text-xl font-bold">
+                        <a href="/" class="hover:text-fuchsia-700">Home</a>&nbsp;»&nbsp;
+                        <span>Blog</span>
+                    </div>
+                    <h1 class="text-3xl pt-4 font-bold">{% data.title %}</h1>
+                    <div class="text-md pt-1">{% data.description %}</div>
+                    <span class="text-sm font-bold" title="2025-01-04 11:18:32 +0100 +0100">{% data.date %}</span>
+                </div>
+                <div class="markdown-body">
+                    {% data.content %}
+                </div>
+            </div>
+        </main>
+        <footer class="h-[4rem] w-full flex justify-center py-2 px-4">
+            <div class="w-full max-w-[calc(900px-2rem)]">
+                <hr class="w-full text-zinc-300">
+                <p class="py-2">Copyright © {% data.year %}, Iceberg Velez; all rights reserved.</p>
+            </div>
+        </footer>
     </body>
 </html>

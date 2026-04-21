@@ -41,14 +41,14 @@ rpcMux.handle("/api/", authContextMiddleware);
 rpcMux.handleFunc("POST /api/example", remoteFunction(remote_example));
 rpcMux.handleFunc("GET /api/sse", sse_func);
 
-const blobMux = new HttpMux();
-blobMux.handle("/", markdown("blog"));
+const blogMux = new HttpMux();
+blogMux.handle("/", markdown("blog"));
 
 const mux = new HttpMux();
 mux.handle("/", logger());
 mux.handle("/", nunchucks("public", { useGzip: true }));
-mux.handle("/blog", blobMux.strip_prefix("/blog"));
 mux.handle("/", serve("public", { useGzip: true }));
+mux.handle("/blog", blogMux.strip_prefix("/blog", { useGzip : true }));
 mux.handle("/remote/", rpcMux.strip_prefix("/remote"));
 
 mux.serve({
