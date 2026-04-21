@@ -54,7 +54,7 @@ mux.handle("/remote/", rpcMux.strip_prefix("/remote"));
 mux.serve({
     hostname: "0.0.0.0",
     port: 3000,
-    key: "ssl/default.key",
-    cert: "ssl/default.cert",
+    // key: "ssl/default.key",
+    // cert: "ssl/default.cert",
     maxRequestBodySize: max_request_size_in_mb * megabytes
 });
