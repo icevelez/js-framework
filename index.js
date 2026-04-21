@@ -9,6 +9,7 @@ import RemoteAuth from "./remote/auth.js";
 import RemoteExample from "./remote/example.js";
 import ServerSentEventHandler from "./remote/sse.js";
 import { nunchucks } from "./lib/bun/middleware/nunchucks.js";
+import { markdown } from "./lib/bun/middleware/markdown.js";
 
 const database = "FAKE";
 
@@ -40,9 +41,13 @@ rpcMux.handle("/api/", authContextMiddleware);
 rpcMux.handleFunc("POST /api/example", remoteFunction(remote_example));
 rpcMux.handleFunc("GET /api/sse", sse_func);
 
+const blobMux = new HttpMux();
+blobMux.handle("/", markdown("blog"));
+
 const mux = new HttpMux();
 mux.handle("/", logger());
 mux.handle("/", nunchucks("public", { useGzip: true }));
+mux.handle("/blog", blobMux.strip_prefix("/blog"));
 mux.handle("/", serve("public", { useGzip: true }));
 mux.handle("/remote/", rpcMux.strip_prefix("/remote"));
 

@@ -121,7 +121,7 @@ mux.serve({ port : 3000 });
         <h2>List of number</h2>
         <ul>
             {%#each [1,2,3,4,5] as number%}
-                <li>data.number</li>
+                <li>{% data.number %}</li>
             {%/each%}
         </ul>
         <p>use the search param to add name like "?name=your_name"</p>
