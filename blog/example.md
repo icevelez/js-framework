@@ -37,7 +37,7 @@ folder structure
 ```
 
 marked.build.js
-```js
+```javascript
 fetch("index.md").then((response) => response.text()).then((data) => {
     const contentElement = document.getElementById("content");
     if (!contentElement) {

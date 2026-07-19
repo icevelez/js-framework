@@ -1,32 +1,38 @@
-import { connectRemote } from "./remote.js";
+import { component } from "core/handlebar";
+import { mount } from "core";
 
-/** @import RemoteExample from '../remote/example.js' */
-/** @type {RemoteExample} */
-const REMOTE = connectRemote("/remote/api/example");
+const App = await component("./src/App.html");
+mount(App, "#app");
 
-/** @import RemoteAuth from '../remote/auth.js' */
-/** @type {RemoteAuth} */
-const REMOTE_AUTH = connectRemote("/remote/auth");
+// import { connectRemote } from "./remote.js";
 
-// 'john','dev' for non admin example use
-console.log(await REMOTE_AUTH.sign_in('admin', 'admin'));
-console.log(await REMOTE.add_numbers(4, 5));
-console.log(await REMOTE_AUTH.sign_out());
+// /** @import RemoteExample from '../remote/example.js' */
+// /** @type {RemoteExample} */
+// const REMOTE = connectRemote("/remote/api/example");
 
-const file_input_el = document.getElementById("file_input_el");
-const upload_button_el = document.getElementById("upload_button_el");
-const delete_button_el = document.getElementById("delete_button_el");
+// /** @import RemoteAuth from '../remote/auth.js' */
+// /** @type {RemoteAuth} */
+// const REMOTE_AUTH = connectRemote("/remote/auth");
 
-const filename = 'example_picture';
+// // 'john','dev' for non admin example use
+// console.log(await REMOTE_AUTH.sign_in('admin', 'admin'));
+// console.log(await REMOTE.add_numbers(4, 5));
+// console.log(await REMOTE_AUTH.sign_out());
 
-upload_button_el.addEventListener('click', async (event) => {
-    const fileList = file_input_el.files;
-    const file = fileList[0];
-    if (!file) return console.log("No file");
+// const file_input_el = document.getElementById("file_input_el");
+// const upload_button_el = document.getElementById("upload_button_el");
+// const delete_button_el = document.getElementById("delete_button_el");
 
-    console.log(await REMOTE.upload_picture(file, filename));
-})
+// const filename = 'example_picture';
 
-delete_button_el.addEventListener('click', async (event) => {
-    console.log(await REMOTE.delete_picture(filename));
-})
+// upload_button_el.addEventListener('click', async (event) => {
+//     const fileList = file_input_el.files;
+//     const file = fileList[0];
+//     if (!file) return console.log("No file");
+
+//     console.log(await REMOTE.upload_picture(file, filename));
+// })
+
+// delete_button_el.addEventListener('click', async (event) => {
+//     console.log(await REMOTE.delete_picture(filename));
+// })

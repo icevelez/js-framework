@@ -10,6 +10,7 @@ import RemoteExample from "./remote/example.js";
 import ServerSentEventHandler from "./remote/sse.js";
 import { nunchucks } from "./lib/bun/middleware/nunchucks.js";
 import { markdown } from "./lib/bun/middleware/markdown.js";
+import { typescript_transpiler } from "./lib/bun/middleware/typescript_transpiler.js";
 
 const database = "FAKE";
 
@@ -47,6 +48,7 @@ blogMux.handle("/", markdown("blog"));
 const mux = new HttpMux();
 mux.handle("/", logger());
 mux.handle("/", nunchucks("public", { useGzip: true }));
+mux.handle("/", typescript_transpiler("public", { useGzip: true }));
 mux.handle("/", serve("public", { useGzip: true }));
 mux.handle("/blog", blogMux.strip_prefix("/blog", { useGzip : true }));
 mux.handle("/remote/", rpcMux.strip_prefix("/remote"));
@@ -54,7 +56,7 @@ mux.handle("/remote/", rpcMux.strip_prefix("/remote"));
 mux.serve({
     hostname: "0.0.0.0",
     port: 3000,
-    // key: "ssl/default.key",
-    // cert: "ssl/default.cert",
+    key: "ssl/default.key",
+    cert: "ssl/default.cert",
     maxRequestBodySize: max_request_size_in_mb * megabytes
 });
