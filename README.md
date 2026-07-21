@@ -90,6 +90,7 @@ Nunchucks - A templating engine middleware for generating HTML on the server
 `index.js`
 ```js
 import { HttpMux } from "./lib/http.bun.js";
+import { nunchucks } from "./lib/bun/middleware/nunchucks.js";
 
 const mux = new HttpMux();
 mux.handle("/", nunchucks("public", { useGzip: true }));        // useGzip to enabled Gzip compression
@@ -127,4 +128,89 @@ mux.serve({ port : 3000 });
         <p>use the search param to add name like "?name=your_name"</p>
     </body>
 </html>
+```
+
+## TypeScript Transpiler
+
+TypeScript Transpiler - It allow developers to write TypeScript code in the browser by transpiling TypeScript into JavaScript on the fly when requesting TypeScript files
+
+### Usage
+`index.js`
+```js
+import { HttpMux } from "./lib/http.bun.js";
+import { typescript_transpiler } from "./lib/bun/middleware/typescript_transpiler.js";
+
+const mux = new HttpMux();
+mux.handle("/", typescript_transpiler("public", { useGzip: true }));        // useGzip to enabled Gzip compression
+mux.serve({ port : 3000 });
+```
+
+`index.html`
+```html
+<html>
+    <head>
+        <title>TypeScript Transpiler</title>
+    </head>
+    <body>
+        <script src="index.ts"></script>
+    </body>
+</html>
+```
+
+`index.ts`
+```ts
+function add(a:number, b:number) {
+    return a + b;
+}
+
+console.log(add(1,2));
+```
+
+## Core Server 
+
+Core Server - A server extension of Core that allow developers to write server code inside a Core component that is then injected to the component via the `$load()` keyword. It is similar to Nunchucks but modified for Core
+
+### Usage
+`index.js`
+```js
+import { HttpMux } from "./lib/http.bun.js";
+import { core_server } from "./lib/bun/middleware/core_server.js";
+
+const mux = new HttpMux();
+mux.handle("/", core_server("public", { useGzip: true }));        // useGzip to enabled Gzip compression
+mux.serve({ port : 3000 });
+```
+
+`index.html`
+```html
+<script runat="server">
+
+    export function load() {
+        return {
+            message : "This string was server injected",
+            users : [1,2,3,4,5],
+        };
+    }
+</script>
+
+<script>
+    import { signal } from "core";
+
+    const load = $load();
+
+    export default function() {
+        console.log(load);
+
+        const [count, setCount] = signal(0);
+    }
+</script>
+
+<h1>Count: {{ count() }}</h1>
+<button on:click="() => setCount(count() + 1)">Increment</button>
+
+<style>
+    h1 {
+        color: red;
+    }
+</style>
 ```

@@ -1,11 +1,28 @@
+<script runat="server">
+
+    export function load() {
+        return {
+            message : "This string was server injected",
+            users : [1,2,3,4,5],
+        };
+    }
+</script>
+
 <script>
     import { signal } from "core";
 
+    const load = $load();
+
     export default function() {
+        const message = load.message;
+        const users = load.users;
+
         const [count, setCount] = signal(0);
     }
 </script>
 
+<h3>{{ message }}</h3>
+<h3>{{ JSON.stringify(users) }}</h3>
 <h1>Count: {{ count() }}</h1>
 <button on:click="() => setCount(count() + 1)">Increment</button>
 

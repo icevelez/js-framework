@@ -11,6 +11,7 @@ import ServerSentEventHandler from "./remote/sse.js";
 import { nunchucks } from "./lib/bun/middleware/nunchucks.js";
 import { markdown } from "./lib/bun/middleware/markdown.js";
 import { typescript_transpiler } from "./lib/bun/middleware/typescript_transpiler.js";
+import { core_server } from "./lib/bun/middleware/core_server.js";
 
 const database = "FAKE";
 
@@ -47,7 +48,7 @@ blogMux.handle("/", markdown("blog"));
 
 const mux = new HttpMux();
 mux.handle("/", logger());
-mux.handle("/", nunchucks("public", { useGzip: true }));
+mux.handle("/", core_server("public", { useGzip: true }));
 mux.handle("/", typescript_transpiler("public", { useGzip: true }));
 mux.handle("/", serve("public", { useGzip: true }));
 mux.handle("/blog", blogMux.strip_prefix("/blog", { useGzip : true }));
